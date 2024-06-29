@@ -3,8 +3,8 @@
 from typing import Callable, Any
 import numpy as np
 import pandas as pd
-from src.blairstats._utils import ArrayFloat, time_now
-from src.blairstats._model import _Regression
+from ._utils import ArrayFloat, time_now
+from ._model import _Regression
 
 class NonlinearFit(_Regression):
     def __init__(self,
@@ -14,7 +14,8 @@ class NonlinearFit(_Regression):
             model
             ) -> None:
         super().__init__(data, summary, parameters, model,
-                         "y", "x")
+                         model["endog"].columns[0],
+                         model["exog"].columns[0])
         self.tests: dict[str, pd.Series]={}
 
 def _nonlinear_fit_params(model) -> pd.DataFrame:
@@ -177,7 +178,7 @@ def nonlinear_fit(
     data_new = _nonlinear_data(model, data, params)
     summary = _nonlinear_summary(model, data, params)
 
-    nonlinear_fit_class = (
+    nonlinear_fit_class = NonlinearFit(
         data_new,
         summary,
         params,
