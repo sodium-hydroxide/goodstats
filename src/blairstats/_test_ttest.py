@@ -4,7 +4,6 @@ import typing as tp
 import numpy as np
 import pandas as pd
 from ._utils import time_now, ArrayFloat
-from ._test import _Test
 
 TTEST_HYPOTHESIS: dict[str, tp.Callable[[str,float|int], tuple[str,str]]] = {
     "two-sided": (lambda var, val:
@@ -20,26 +19,6 @@ TTEST_HYPOTHESIS: dict[str, tp.Callable[[str,float|int], tuple[str,str]]] = {
          f"H1:= {var} \u2265 {val}]")
     )
 }
-
-
-class TTest(_Test):
-    """TTest Class
-
-    Args:
-        _Test (superclass): Super class for class
-    """
-    def __init__(self,
-            data: pd.DataFrame,
-            results: dict
-            ) -> None:
-        """Constructor for TTest class
-
-        Args:
-            data (pd.DataFrame): Dataset the test was performed on
-            results (dict): Summary of test results
-        """
-        super().__init__(data, results)
-
 # Private Functions
 
 def _t_test_formula_parse(formula:str) -> dict:
@@ -464,7 +443,7 @@ def t_test(
         sig_level:float=0.05,
         alt_hypothesis:str="two-sided",
         eq_var:bool=True
-        ) -> TTest:
+        ) -> pd.Series:
     """Perform T-Test
 
     Args:
@@ -556,6 +535,6 @@ def t_test(
     else:
         result = _t_test_upper(result)
     
-    return TTest(data, results=result)
+    return pd.Series(result)
 
 
