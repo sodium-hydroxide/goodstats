@@ -3,10 +3,9 @@ import numpy as np
 import pandas as pd
 from patsy import dmatrices # type: ignore
 from statsmodels.api import OLS # type: ignore
-from .__model__ import _Regression, __parameter_summary__
-from .__utils__ import time_now
+from .__utils__ import time_now, __Regression__, __parameter_summary__
 
-class OrdinaryLeastSquares(_Regression):
+class OrdinaryLeastSquares(__Regression__):
     """_summary_
 
     Args:

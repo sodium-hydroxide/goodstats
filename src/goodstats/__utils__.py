@@ -78,7 +78,7 @@ DISTRIBUTION = {
 
 
 
-class _Regression:
+class __Regression__:
     """Generic Class For Regression Models
 
     Attributes:

@@ -4,10 +4,14 @@ from typing import Callable, Any
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from .__utils__ import time_now
-from .__model__ import _Regression, __parameter_summary__, __error_prop_estimate__
+from .__utils__ import (
+    time_now,
+    __Regression__,
+    __parameter_summary__,
+    __error_prop_estimate__
+)
 
-class NonlinearFit(_Regression):
+class NonlinearFit(__Regression__):
     def __init__(self,
             data: pd.DataFrame,
             summary: pd.Series,
