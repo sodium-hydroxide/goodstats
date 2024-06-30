@@ -1,8 +1,9 @@
 """Source code for blairstats.model
 
 """
+import numpy as np
 import pandas as pd
-from ._utils import save_generic
+from .__utils__ import save_generic, ArrayFloat
 import typing
 
 class _Regression:
@@ -34,23 +35,36 @@ class _Regression:
         """
         self.data = data
         self.summary = summary
-        self.parameters = parameters,
+        self.parameters = parameters
         self.model = model
         self.__endog_name:str = endog_name
         self.__exog_names:list[str] | str = exog_names
         pass
 
     def __repr__(self) -> str:
+        """_summary_
+
+        Returns:
+            str: _description_
+        """
         return (
             f"Summary:\n{self.summary.__repr__()}\n"
             f"Parameters:\n{self.parameters.__repr__()}"
         )
-    
+
     def save(self, path:str) -> None:
+        """_summary_
+
+        Args:
+            path (str): _description_
+
+        Raises:
+            NotImplementedError: _description_
+        """
         raise NotImplementedError
         class_dict = self.__dict__
         save_generic(class_dict, path)
-        
+
     def plot(self,
             kind:typing.Literal["resid_qq",
                                 "resid_dist",
@@ -59,6 +73,13 @@ class _Regression:
             path:str|None=None,
             title_name:str|None=None
             ) -> None:
+        """_summary_
+
+        Args:
+            kind (typing.Literal[&quot;resid_qq&quot;, &quot;resid_dist&quot;, &quot;resid_fit&quot;, &quot;fit_obs&quot;]): _description_
+            path (str | None, optional): _description_. Defaults to None.
+            title_name (str | None, optional): _description_. Defaults to None.
+        """
         {
             "resid_qq":self.__plot_resid_qq,
             "resid_dist": self.__plot_resid_dist,
@@ -70,6 +91,12 @@ class _Regression:
             path:str|None=None,
             title_name:str|None=None
         ) -> None:
+        """_summary_
+
+        Args:
+            path (str | None, optional): _description_. Defaults to None.
+            title_name (str | None, optional): _description_. Defaults to None.
+        """
         from statsmodels.api import ProbPlot, qqline # type: ignore
         from matplotlib.pyplot import subplots, show, savefig
         var_name:str = self.__endog_name if (title_name is None) else title_name
@@ -90,6 +117,12 @@ class _Regression:
             path:str|None=None,
             title_name:str|None=None
         ) -> None:
+        """_summary_
+
+        Args:
+            path (str | None, optional): _description_. Defaults to None.
+            title_name (str | None, optional): _description_. Defaults to None.
+        """
         from matplotlib.pyplot import subplots, show, savefig
         from seaborn import histplot # type: ignore
         var_name:str = self.__endog_name if (title_name is None) else title_name
@@ -113,6 +146,12 @@ class _Regression:
             path:str|None=None,
             title_name:str|None=None
         ) -> None:
+        """_summary_
+
+        Args:
+            path (str | None, optional): _description_. Defaults to None.
+            title_name (str | None, optional): _description_. Defaults to None.
+        """
         from matplotlib.pyplot import subplots, show, savefig
         var_name:str = self.__endog_name if (title_name is None) else title_name
 
@@ -127,7 +166,7 @@ class _Regression:
         ax.set_ylabel("Residuals")
         ax.set_xlabel("Fitted Values")
         ax.set_title(f"Residuals vs. Fitted Values of {var_name}")
-        
+
         if path is None:
             show()
         else:
@@ -137,8 +176,17 @@ class _Regression:
             path:str|None=None,
             title_name:str|None=None
         ) -> None:
+        """_summary_
+
+        Args:
+            path (str | None, optional): _description_. Defaults to None.
+            title_name (str | None, optional): _description_. Defaults to None.
+
+        Raises:
+            NotImplementedError: _description_
+        """
         from matplotlib.pyplot import subplots, show, grid, savefig
-        from numpy import abs
+        from numpy import abs, argsort, array
         endog_name: str = self.model.endog_names
         plot_data = pd.DataFrame(self.model.exog,
                                  columns=self.model.exog_names)
@@ -180,26 +228,41 @@ class _Regression:
 
         fig, ax = subplots()
         grid(which="both",axis="both")
-        ax.scatter(plot_data[exog_names[0]],
-                   (plot_data[endog_name]),
+
+        x = array(plot_data[exog_names[0]].values)
+        order = argsort(x)
+        x=x[order]
+
+        yobs=plot_data[endog_name].values
+        yobs=yobs[order]
+
+        yfit=plot_data[f"fit_{endog_name}"].values
+        yfit=yfit[order]
+
+        yl1=plot_data["lower1"].values
+        yl1=yl1[order]
+        yu1=plot_data["upper1"].values
+        yu1=yu1[order]
+
+        yl2=plot_data["lower2"].values
+        yl2=yl2[order]
+        yu2=plot_data["upper2"].values
+        yu2=yu2[order]
+
+        ax.scatter(x, yobs,
                    facecolors="none",
                    edgecolors="k",
                    s=40,
                    label="Observed")
-        ax.plot(plot_data[exog_names[0]],
-                (plot_data[f"fit_{endog_name}"]),
+        ax.plot(x, yfit,
                 color="k",
                 lw=1,
                 label="Fitted")
-        ax.fill_between(plot_data[exog_names[0]],
-                        (plot_data["lower1"]),
-                        (plot_data["upper1"]),
+        ax.fill_between(x, yl1, yu1,
                         color="k",
                         alpha=0.2,
                         label="1\u03C3")
-        ax.fill_between(plot_data[exog_names[0]],
-                        (plot_data["lower2"]),
-                        (plot_data["upper2"]),
+        ax.fill_between(x, yl2, yu1,
                         color="k",
                         alpha=0.1,
                         label="2\u03C3")
@@ -207,9 +270,81 @@ class _Regression:
         ax.set_ylabel(endog_name)
         ax.legend()
         ax.set_title("Comparison of Fitted and Observed Values")
-        
+
         if path is None:
             show()
-        
+
         else:
             savefig(path)
+
+
+def __parameter_summary__(
+        estimator:ArrayFloat,
+        covariance_matrix:ArrayFloat,
+        names:list[str]
+        ) -> pd.DataFrame:
+    """Generate parameter summaries for regression models
+
+    Args:
+        estimator (ArrayFloat): Estimator of model parameters
+        covariance_matrix (ArrayFloat): Covariance matrix of model
+        names (list[str]): Names of parameters
+
+    Returns:
+        pd.DataFrame: DataFrame containing the estimators, standard
+        errors, relative errors, correlation matrices, and t-values
+    """
+    # if not isinstance(estimator, ArrayFloat):
+    #     raise TypeError("estimator must be numpy array of float")
+    # if not isinstance(covariance_matrix, ArrayFloat):
+    #     raise TypeError("covariance_matrix must be numpy array of float")
+    # if not isinstance(names, list[str]):
+    #     raise TypeError("names must be list of strings")
+
+    se = np.sqrt(np.diag(covariance_matrix))
+
+    cor = covariance_matrix / np.outer(se,se)
+
+    params = pd.DataFrame(
+        cor,
+        index=names,
+        columns=[f"cor_{name}" for name in names]
+    )
+
+    params = pd.concat(
+        [(pd.DataFrame({"estimate":estimator, "se": se},
+                      index = names)
+         .assign(**{"re": (lambda df:
+             df["se"] / np.abs(df["estimate"])
+        )})),
+        params],
+        axis=1
+    ).assign(**{"tvalues": (lambda df:
+        df["estimate"] / df["se"]
+    )})
+
+    return params
+
+
+def __error_prop_estimate__(
+    func:typing.Callable[[ArrayFloat, ArrayFloat], ArrayFloat],
+    exog:ArrayFloat,
+    params:ArrayFloat,
+    se_params:ArrayFloat
+    ) -> ArrayFloat:
+    estimated = func(exog, params)
+    
+    upper = func(exog, params + se_params)
+    lower = func(exog, params - se_params)
+    
+    u_se_estimate = np.abs(estimated - upper)
+    l_se_estimate = np.abs(estimated - lower)
+    
+    se_estimates = (np.insert(u_se_estimate, 0, l_se_estimate)
+                    .reshpae(2, exog.shape[0])
+                    .T)
+    
+    se_estimates:ArrayFloat = np.max(se_estimates, axis=1)
+    
+    return se_estimates
+
