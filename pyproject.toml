@@ -15,22 +15,16 @@ dependencies = [
     "patsy"
 ]
 authors = [
-    {name = "Noah Blair", email = "noahjblair (at) outlook (dot) com"}
+    {name = "Noah Blair", email = "noahjblair@outlook.com"}
 ]
 maintainers = [
-    {name = "Noah Blair", email = "noahjblair (at) outlook (dot) com"}
+    {name = "Noah Blair", email = "noahjblair@outlook.com"}
 ]
 description = "Statistics models and tests that return 'tidy' classes"
 readme = "README.md"
 license = {file = "LICENSE"}
 keywords = [
     "regression", "statistics"
-]
-classifiers = [
-    "Developement Status :: 3 - Alpha",
-    "Intended Audience :: Statisticians, Data Scientists",
-    "License :: :: ",
-    "Programming Language :: Python :: 3.10"
 ]
 
 [project.urls]
