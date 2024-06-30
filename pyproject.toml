@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+requires-python = ">= 3.10"
+name = "goodstats"
+version = "0.0.1"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "statsmodels",
+    "scipy",
+    "patsy"
+]
+authors = [
+    {name = "Noah Blair", email = "noahjblair@outlook.com"}
+]
+maintainers = [
+    {name = "Noah Blair", email = "noahjblair@outlook.com"}
+]
+description = "Statistics models and tests that return 'tidy' classes"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = [
+    "regression", "statistics"
+]
+
+[project.urls]
+Homepage = "https://github.com/sodium-hydroxide/goodstats"
+Repository = "https://github.com/sodium-hydroxide/goodstats.git"
+
