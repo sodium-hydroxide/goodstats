@@ -64,7 +64,7 @@ def _nonlinear_summary(model, data, params) -> pd.Series:
     fvalue = ms_model / ms_resid
 
     summary = pd.Series({
-        "model": (f"Nonlinear-Fit: {endog}"
+        "model": (f"Nonlinear-Fit: {endog}" # type: ignore
                   f" ~ F({model["exog"].columns[0]},"
                   f"{", ".join(params.index)})"
                  ),
@@ -166,7 +166,7 @@ def nonlinear_fit(
         formula:str,
         curve:Callable[[Any], ArrayFloat],
         guess:tuple[float]
-        ) -> tuple:
+        ) -> NonlinearFit:
 
     model:dict = _nonlinear_fit_model(
         data,
