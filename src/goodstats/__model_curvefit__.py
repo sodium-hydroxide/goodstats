@@ -89,11 +89,11 @@ def __nonlinear_summary__(model, data, params) -> pd.Series:
 
 def __nonlinear_data__(model, data:pd.DataFrame, params) -> pd.DataFrame:
     endog_name:str = model["endog"].columns[0]
-    exog_name:str = model["exog"].columns[0]
-    xvals = data[exog_name].values
-    yactual = data[endog_name].values
-    yfit:npt.NDArray[np.float64] = model['curve_solution'](xvals)
-    resid = yactual - yfit
+    exog_name:str  = model["exog"].columns[0]
+    xvals          = np.array(data[exog_name].values)
+    yactual        = np.array(data[endog_name].values)
+    yfit           = np.array(model['curve_solution'](xvals))
+    resid          = np.array(yactual - yfit) # type: ignore
 
     # This calculation looks at the difference of the true residuals and
     # the residuals if the model parameters were +/- one standard error

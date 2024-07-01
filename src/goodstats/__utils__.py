@@ -8,6 +8,17 @@ import pandas as pd
 from datetime import datetime, UTC
 from scipy import special # type: ignore
 
+
+DISTRIBUTION = {
+    "normal": lambda mu, sigma: {
+        "cdf": lambda x: special.ndtr((x - mu) / sigma)
+    },
+    "student-t": lambda df: {
+        "cdf": lambda x: special.stdtr(df, x)
+    }
+}
+
+
 def time_now() -> str:
     """Return current UTC time in ISO 8601 formatted string"""
     time = datetime.now(UTC).replace(microsecond=0).isoformat()
@@ -63,20 +74,6 @@ def _column_wrap(n:int, long:bool=False) -> np.int64:
     
     return max(c1,c2)
 
-DISTRIBUTION = {
-    "normal": lambda mu, sigma: {
-        "cdf": lambda x: special.ndtr((x - mu) / sigma)
-    },
-    "student-t": lambda df: {
-        "cdf": lambda x: special.stdtr(df, x)
-    }
-}
-# dict[str,
-#                    Callable[[Union[float, Any]],
-#                             dict[str,
-#                                  Callable[[ArrayFloat],ArrayFloat]]]] = 
-
-
 
 class __Regression__:
     """Generic Class For Regression Models
@@ -121,7 +118,7 @@ class __Regression__:
         """
         return (
             f"Summary:\n{self.summary.__repr__()}\n"
-            f"Parameters:\n{self.parameters.__repr__()}"
+            f"Parameters:\n{self.parameters.T.__repr__()}"
         )
 
     def save(self, path:str) -> None:
@@ -334,7 +331,7 @@ class __Regression__:
                         color="k",
                         alpha=0.2,
                         label="1\u03C3")
-        ax.fill_between(x, yl2, yu1,
+        ax.fill_between(x, yl2, yu2,
                         color="k",
                         alpha=0.1,
                         label="2\u03C3")
@@ -377,23 +374,22 @@ def __parameter_summary__(
 
     cor = covariance_matrix / np.outer(se,se)
 
-    params = pd.DataFrame(
+    cor_df = pd.DataFrame(
         cor,
         index=names,
         columns=[f"cor_{name}" for name in names]
     )
 
-    params = pd.concat(
-        [(pd.DataFrame({"estimate":estimator, "se": se},
-                      index = names)
-         .assign(**{"re": (lambda df:
-             df["se"] / np.abs(df["estimate"])
-        )})),
-        params],
-        axis=1
-    ).assign(**{"tvalues": (lambda df:
-        df["estimate"] / df["se"]
-    )})
+    params = (
+        pd.DataFrame({"estimate":estimator, "se": se}, index = names)
+        .assign(**{
+            "re": lambda df: df["se"] / np.abs(df["estimate"])
+        })
+        .pipe(lambda df: pd.concat([df, cor_df], axis=1))
+        .assign(**{
+            "tvalues": lambda df: df["estimate"] / df["se"]
+        })
+    )
 
     return params
 
