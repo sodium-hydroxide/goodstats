@@ -136,7 +136,7 @@ class _Regression:
         """
         return (
             f"Summary:\n{self.summary.__repr__()}\n"
-            f"Parameters:\n{self.parameters.T.__repr__()}"
+            f"Parameters:\n{self.parameters.__repr__()}"
         )
 
     def save(self, path:str) -> None:
