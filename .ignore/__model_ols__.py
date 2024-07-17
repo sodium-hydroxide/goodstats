@@ -1,16 +1,30 @@
 """Source code for OLS models"""
 import numpy as np
 import pandas as pd
-from ._model import _Regression
-from ._utils import time_now
+from patsy import dmatrices # type: ignore
+from statsmodels.api import OLS # type: ignore
+from .__utils__ import time_now, __Regression__, __parameter_summary__
 
-class OrdinaryLeastSquares(_Regression):
+class OrdinaryLeastSquares(__Regression__):
+    """_summary_
+
+    Args:
+        _Regression (_type_): _description_
+    """
     def __init__(self,
             data: pd.DataFrame,
             summary: pd.Series,
             parameters: pd.DataFrame,
-            model
+            model: OLS
             ) -> None:
+        """_summary_
+
+        Args:
+            data (pd.DataFrame): _description_
+            summary (pd.Series): _description_
+            parameters (pd.DataFrame): _description_
+            model (_type_): _description_
+        """
         super().__init__(data, summary, parameters, model,
                          model.endog_names, model.exog_names)
         self.tests: dict[str, pd.Series]={}
@@ -29,32 +43,30 @@ class OrdinaryLeastSquares(_Regression):
         raise NotImplementedError
 
 def _ols_params(model) -> pd.DataFrame:
+    """_summary_
+
+    Args:
+        model (_type_): _description_
+
+    Returns:
+        pd.DataFrame: _description_
+    """
     model_fit = model.fit()
-    params_vals = (model_fit.params)
+    estimates = (model_fit.params)
     cov = model_fit.cov_params()
     names = model.exog_names
-    se = np.sqrt(np.diag(cov))
-    cor = cov / np.outer(se,se)
-    cor = pd.DataFrame(
-        cor,
-        index=names,
-        columns=[f"cor_{name}" for name in names]
-    )
-    params = (
-        pd.concat([
-            (pd.DataFrame({"estimate": params_vals,"se": se},
-                          index=names)
-             .assign(**{"re": lambda df:df["se"] / np.abs(df["estimate"])})
-            ),
-            cor],
-            axis=1)
-        .assign(**{
-            "tvalues": model_fit.tvalues
-        })
-    )
-    return params
+    return __parameter_summary__(estimates, cov, names)
 
 def _ols_summary(model, formula) -> pd.Series:
+    """_summary_
+
+    Args:
+        model (_type_): _description_
+        formula (_type_): _description_
+
+    Returns:
+        pd.Series: _description_
+    """
     model_fit = model.fit()
     nobs = np.int64(model.nobs)
     df_model = np.int64(model.df_model)
@@ -92,6 +104,15 @@ def _ols_summary(model, formula) -> pd.Series:
     return summary
 
 def _ols_data(model, data:pd.DataFrame) -> pd.DataFrame:
+    """_summary_
+
+    Args:
+        model (_type_): _description_
+        data (pd.DataFrame): _description_
+
+    Returns:
+        pd.DataFrame: _description_
+    """
     #raise NotImplementedError("Do this dummy")
     from statsmodels.stats.outliers_influence import OLSInfluence # type: ignore
     model_fit = model.fit()
@@ -108,15 +129,38 @@ def _ols_data(model, data:pd.DataFrame) -> pd.DataFrame:
     })
     return data
 
+def __ols_model__(data:pd.DataFrame,
+                  formula:str,
+                  ) -> OLS:
+    """_summary_
+
+    Args:
+        data (pd.DataFrame): _description_
+        formula (str): _description_
+
+    Returns:
+        OLS: _description_
+    """
+    endog, exog = dmatrices(formula, data)
+    model = OLS(endog, exog)
+    return model
+
 def ordinary_least_squares(
         data:pd.DataFrame,
         formula:str
         ) -> OrdinaryLeastSquares:
-    from patsy import dmatrices # type: ignore
-    from statsmodels.api import OLS # type: ignore
+    """_summary_
 
-    endog, exog = dmatrices(formula, data)
-    model = OLS(endog, exog)
+    Args:
+        data (pd.DataFrame): _description_
+        formula (str): _description_
+
+    Returns:
+        OrdinaryLeastSquares: _description_
+    """
+    
+
+    model = __ols_model__(data,formula)
     params = _ols_params(model)
     summary = _ols_summary(model, formula)
     data_new = _ols_data(model, data)

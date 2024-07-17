@@ -3,7 +3,7 @@
 import typing as tp
 import numpy as np
 import pandas as pd
-from ._utils import time_now, ArrayFloat
+from .__utils__ import time_now, ArrayFloat
 
 TTEST_HYPOTHESIS: dict[str, tp.Callable[[str,float|int], tuple[str,str]]] = {
     "two-sided": (lambda var, val:

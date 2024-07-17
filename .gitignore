@@ -6,3 +6,4 @@ venv.sh
 dist/
 *.ipynb
 *.svg
+lm.md
